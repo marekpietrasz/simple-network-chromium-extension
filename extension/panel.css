@@ -11,6 +11,7 @@
   --num: #1750eb;
   --bool: #b5590d;
   --null: #5f6368;
+  --err: #d93025;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +27,7 @@
     --num: #82aaff;
     --bool: #f78c6c;
     --null: #9aa0a6;
+    --err: #f28b82;
   }
 }
 
@@ -99,7 +101,7 @@ body { display: flex; flex-direction: column; }
 .row .method { color: var(--muted); font-weight: 600; }
 .row .status { font-variant-numeric: tabular-nums; }
 .row .name { overflow: hidden; text-overflow: ellipsis; }
-.row.err .status { color: #d93025; }
+.row.err .status { color: var(--err); }
 .row.warn .status { color: var(--bool); }
 .row.ok .status { color: var(--str); }
 
