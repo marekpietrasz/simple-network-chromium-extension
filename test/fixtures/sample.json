@@ -1,0 +1,12 @@
+{
+  "id": 42,
+  "name": "Ada Lovelace",
+  "active": true,
+  "roles": ["admin", "author"],
+  "profile": {
+    "email": "ada@example.com",
+    "address": { "city": "London", "zip": "SW1A" },
+    "tags": [{ "k": "vip", "v": true }, { "k": "beta", "v": false }]
+  },
+  "note": null
+}

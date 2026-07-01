@@ -1,0 +1,14 @@
+{
+  "name": "network-call-inspector",
+  "version": "1.0.0",
+  "description": "Chromium DevTools panel showing Fetch/XHR calls in one pane.",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/format.test.js",
+    "test:e2e": "node test/e2e.panel.mjs",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

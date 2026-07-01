@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Net Inspector — manual test page</title>
+  <style>
+    body { font: 14px system-ui, sans-serif; margin: 2rem; max-width: 640px; }
+    button { font: inherit; padding: 6px 12px; margin: 4px 6px 4px 0; cursor: pointer; }
+    #log { margin-top: 1rem; font: 12px monospace; white-space: pre-wrap; color: #444; }
+    code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Net Inspector — manual test page</h1>
+  <p>
+    Serve this folder over HTTP, then open DevTools (F12) → <b>Net Inspector</b> and click the
+    buttons below. Each fires a Fetch/XHR call so you can exercise every part of the panel.
+  </p>
+  <p>Serve with: <code>python3 -m http.server 8000</code> then open
+     <code>http://localhost:8000/test/manual.html</code></p>
+
+  <div>
+    <button data-act="json">GET JSON (fetch)</button>
+    <button data-act="xhr">GET JSON (XHR)</button>
+    <button data-act="xml">GET XML (fetch)</button>
+    <button data-act="text">GET text (fetch)</button>
+    <button data-act="post">POST JSON body</button>
+    <button data-act="404">GET 404</button>
+    <button data-act="all">Fire all</button>
+  </div>
+
+  <div id="log"></div>
+
+  <script>
+    const log = (m) => { document.getElementById("log").textContent += m + "\n"; };
+
+    const actions = {
+      json: () => fetch("fixtures/sample.json", { headers: { "Accept": "application/json", "X-Demo": "1" } }),
+      xml:  () => fetch("fixtures/sample.xml"),
+      text: () => fetch("fixtures/sample.txt"),
+      "404": () => fetch("fixtures/does-not-exist.json"),
+      post: () => fetch("fixtures/sample.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer demo-token" },
+        body: JSON.stringify({ name: "Ada", roles: ["admin", "author"], active: true }),
+      }),
+      xhr: () => new Promise((res, rej) => {
+        const x = new XMLHttpRequest();
+        x.open("GET", "fixtures/sample.json?via=xhr");
+        x.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        x.onload = () => res({ status: x.status });
+        x.onerror = rej;
+        x.send();
+      }),
+    };
+
+    async function run(act) {
+      try {
+        const r = await actions[act]();
+        log(act + " -> " + (r.status || "done"));
+      } catch (e) {
+        log(act + " -> error: " + e.message + " (are you serving over HTTP, not file://?)");
+      }
+    }
+
+    document.body.addEventListener("click", (ev) => {
+      const act = ev.target.getAttribute("data-act");
+      if (!act) return;
+      if (act === "all") Object.keys(actions).forEach(run);
+      else run(act);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f5f5f5;
+  --bg-sel: #cfe4ff;
+  --border: #d0d0d0;
+  --text: #202124;
+  --muted: #5f6368;
+  --mono: 11px/1.5 "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --key: #881391;
+  --str: #1a7f37;
+  --num: #1750eb;
+  --bool: #b5590d;
+  --null: #5f6368;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #202124;
+    --bg-alt: #292a2d;
+    --bg-sel: #2c4463;
+    --border: #3c4043;
+    --text: #e8eaed;
+    --muted: #9aa0a6;
+    --key: #c792ea;
+    --str: #7ec699;
+    --num: #82aaff;
+    --bool: #f78c6c;
+    --null: #9aa0a6;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font: 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body { display: flex; flex-direction: column; }
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+  flex: 0 0 auto;
+}
+#toolbar button {
+  font: inherit;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+#toolbar .chk { display: flex; align-items: center; gap: 4px; color: var(--muted); user-select: none; }
+#filter {
+  flex: 1;
+  font: inherit;
+  padding: 3px 6px;
+  min-width: 120px;
+}
+.count { color: var(--muted); white-space: nowrap; }
+
+#main { flex: 1 1 auto; display: flex; min-height: 0; }
+
+#list {
+  flex: 0 0 34%;
+  min-width: 220px;
+  max-width: 55%;
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  resize: horizontal;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 46px 34px 1fr;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.row:hover { background: var(--bg-alt); }
+.row.sel { background: var(--bg-sel); }
+.row .method { color: var(--muted); font-weight: 600; }
+.row .status { font-variant-numeric: tabular-nums; }
+.row .name { overflow: hidden; text-overflow: ellipsis; }
+.row.err .status { color: #d93025; }
+.row.warn .status { color: var(--bool); }
+.row.ok .status { color: var(--str); }
+
+#detail { flex: 1 1 auto; overflow: auto; padding: 10px 14px; }
+#detail .empty { color: var(--muted); margin-top: 20px; }
+
+.summary-line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.summary-line .method { font-weight: 700; }
+.summary-line .status { font-weight: 600; }
+.summary-line .iconbtn.export { margin-left: auto; align-self: center; }
+.url {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font: var(--mono);
+  color: var(--text);
+  background: var(--bg-alt);
+  padding: 4px 6px;
+  border-radius: 3px;
+  margin: 4px 0 12px;
+}
+.url .iconbtn { flex: 0 0 auto; }
+.url .urltext { word-break: break-all; }
+
+details.section {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+details.section > summary {
+  cursor: pointer;
+  padding: 5px 8px;
+  font-weight: 600;
+  background: var(--bg-alt);
+  user-select: none;
+}
+details.section > summary .badge {
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+details.section > .body { padding: 6px 10px; }
+
+.kv { font: var(--mono); }
+.kv .h { display: grid; grid-template-columns: minmax(120px, 30%) 1fr; gap: 4px 12px; padding: 1px 0; }
+.kv .h .hk { color: var(--key); word-break: break-all; }
+.kv .h .hv { word-break: break-all; white-space: pre-wrap; }
+
+pre.raw {
+  font: var(--mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* JSON tree */
+.json { font: var(--mono); }
+.json details { margin-left: 12px; }
+.json details > summary { cursor: pointer; list-style: none; user-select: none; }
+.json details > summary::-webkit-details-marker { display: none; }
+.json details > summary::before { content: "\25B8"; display: inline-block; width: 12px; color: var(--muted); }
+.json details[open] > summary::before { content: "\25BE"; }
+.json .leaf { margin-left: 24px; }
+.json .k { color: var(--key); }
+.json .s { color: var(--str); }
+.json .n { color: var(--num); }
+.json .b { color: var(--bool); }
+.json .z { color: var(--null); }
+.json .muted { color: var(--muted); }
+
+.hint { color: var(--muted); font-style: italic; }
+
+/* Icon buttons (copy / export) */
+.iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  color: var(--muted);
+  border-radius: 3px;
+  line-height: 0;
+  vertical-align: middle;
+}
+.iconbtn:hover { color: var(--text); background: var(--bg-alt); }
+.iconbtn.done { color: var(--str); }
+
+/* Copy icon on a section summary sits at the far right. */
+details.section > summary .iconbtn { float: right; margin-top: -1px; }

@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "Network Call Inspector",
+  "version": "1.0.0",
+  "description": "One-pane view of Fetch/XHR calls: URL, method, status, headers, and request/response bodies. Zero dependencies, no network access, no data leaves DevTools.",
+  "devtools_page": "devtools.html"
+}
