@@ -68,12 +68,21 @@ body { display: flex; flex-direction: column; }
 
 #list {
   flex: 0 0 34%;
-  min-width: 220px;
-  max-width: 55%;
+  min-width: 180px;
   overflow: auto;
-  border-right: 1px solid var(--border);
-  resize: horizontal;
 }
+
+/* Draggable divider between the list and the detail pane. Dragging it resizes
+   both panes (the list gets an explicit flex-basis; the detail fills the rest). */
+#splitter {
+  flex: 0 0 6px;
+  cursor: col-resize;
+  background: var(--border);
+  border-left: 1px solid var(--bg);
+  border-right: 1px solid var(--bg);
+  background-clip: padding-box;
+}
+#splitter:hover, #splitter.dragging { background: var(--muted); }
 
 .row {
   display: grid;
@@ -187,5 +196,12 @@ pre.raw {
 .iconbtn:hover { color: var(--text); background: var(--bg-alt); }
 .iconbtn.done { color: var(--str); }
 
-/* Copy icon on a section summary sits at the far right. */
-details.section > summary .iconbtn { float: right; margin-top: -1px; }
+/* The action buttons (expand / collapse / copy) sit at the far right of a
+   section summary, in natural left-to-right order. */
+details.section > summary .sumbtns {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: -1px;
+}

@@ -94,6 +94,16 @@ const ICON_CHECK =
 const ICON_EXPORT =
   '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">' +
   '<path fill="currentColor" d="M12 2 8 6h3v8h2V6h3l-4-4zM4 14v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6h-2v6H6v-6H4z"/></svg>';
+// IntelliJ-style expand/collapse-all: chevrons pointing apart (expand) or
+// together (collapse).
+const ICON_EXPAND =
+  '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M5 6.5 8 3.5 11 6.5"/><path d="M5 9.5 8 12.5 11 9.5"/></svg>';
+const ICON_COLLAPSE =
+  '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M5 3.5 8 6.5 11 3.5"/><path d="M5 12.5 8 9.5 11 12.5"/></svg>';
 
 // An icon button that copies getText() to the clipboard and briefly shows a
 // check. getText is called at click time so async-loaded bodies are picked up.
@@ -109,6 +119,25 @@ function iconBtn(icon, title, getText) {
     setTimeout(() => { btn.innerHTML = icon; btn.classList.remove("done"); }, 1000);
   });
   return btn;
+}
+
+// A plain icon button that runs an action on click (no copy/check animation).
+function actionBtn(icon, title, onClick) {
+  const btn = el("button", { class: "iconbtn", title });
+  btn.innerHTML = icon;
+  btn.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    onClick();
+  });
+  return btn;
+}
+
+// Append the given buttons to a section's summary as a right-aligned group,
+// in natural left-to-right order.
+function addSummaryButtons(section, buttons) {
+  const group = el("span", { class: "sumbtns" }, buttons);
+  section.querySelector("summary").appendChild(group);
 }
 
 // --- capture ----------------------------------------------------------------
@@ -216,9 +245,9 @@ function headersSection(title, headers, open) {
   }
   const section = sectionEl(title, list.length + " headers", body, open);
   if (list.length) {
-    section.querySelector("summary").appendChild(
-      iconBtn(ICON_CLIPBOARD, "Copy headers", () => httpHeaderLines(list))
-    );
+    addSummaryButtons(section, [
+      iconBtn(ICON_CLIPBOARD, "Copy headers", () => httpHeaderLines(list)),
+    ]);
   }
   return section;
 }
@@ -250,11 +279,12 @@ function bodySection(title, text, mimeType, open, note) {
   const copyBtn = iconBtn(ICON_CLIPBOARD, "Copy body", () => text);
 
   let badge;
+  let treeEl = null;
   const parsed = tryParseJson(text, mimeType);
   if (parsed.ok) {
     badge = "JSON · " + text.length + " B";
-    const tree = el("div", { class: "json" }, [renderJson(parsed.value, null, 0)]);
-    body.appendChild(tree);
+    treeEl = el("div", { class: "json" }, [renderJson(parsed.value, null, 0)]);
+    body.appendChild(treeEl);
   } else {
     const looksXml = /^\s*</.test(text);
     badge = (looksXml ? "XML/text" : "text") + " · " + text.length + " B";
@@ -262,7 +292,17 @@ function bodySection(title, text, mimeType, open, note) {
   }
 
   const section = sectionEl(title, badge, body, open);
-  section.querySelector("summary").appendChild(copyBtn);
+  const buttons = [];
+  // Expand/collapse-all only make sense for the foldable JSON tree.
+  if (treeEl) {
+    const setAll = (openState) => {
+      for (const d of treeEl.querySelectorAll("details")) d.open = openState;
+    };
+    buttons.push(actionBtn(ICON_EXPAND, "Expand all", () => setAll(true)));
+    buttons.push(actionBtn(ICON_COLLAPSE, "Collapse all", () => setAll(false)));
+  }
+  buttons.push(copyBtn);
+  addSummaryButtons(section, buttons);
   return section;
 }
 
@@ -292,7 +332,7 @@ function renderJson(value, key, depth) {
     el("span", { class: "muted", text: openB + " " + entries.length + (isArray ? " items" : " keys") + " " + closeB }),
   ]);
   const details = el("details", null, [summary]);
-  if (depth < 2) details.open = true; // expand first couple levels for "full picture"
+  details.open = true; // fully expanded on open; use Collapse all to fold.
   for (const [k, v] of entries) {
     details.appendChild(renderJson(v, isArray ? null : k, depth + 1));
   }
@@ -397,6 +437,41 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key === "ArrowDown") { ev.preventDefault(); moveSelection(1); }
   else if (ev.key === "ArrowUp") { ev.preventDefault(); moveSelection(-1); }
 });
+
+// --- resizable split --------------------------------------------------------
+// Drag the divider to resize the list / detail panes. The list gets an explicit
+// pixel flex-basis; the detail pane flexes to fill whatever is left.
+(function initSplitter() {
+  const splitter = document.getElementById("splitter");
+  const mainEl = document.getElementById("main");
+  let dragging = false;
+
+  splitter.addEventListener("mousedown", (ev) => {
+    dragging = true;
+    splitter.classList.add("dragging");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    ev.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (ev) => {
+    if (!dragging) return;
+    const rect = mainEl.getBoundingClientRect();
+    const min = 180;
+    const max = rect.width - 220;
+    let w = ev.clientX - rect.left;
+    w = Math.max(min, Math.min(max, w));
+    listEl.style.flex = "0 0 " + w + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    splitter.classList.remove("dragging");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  });
+})();
 
 // --- toolbar wiring ---------------------------------------------------------
 document.getElementById("clear").addEventListener("click", clearAll);
